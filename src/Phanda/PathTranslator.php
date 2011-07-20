@@ -7,30 +7,6 @@
  * @copyright  2011 k-holy <k.holy74@gmail.com>
  * @author     k.holy74@gmail.com
  * @license    http://www.opensource.org/licenses/mit-license.php  The MIT License (MIT)
- *
- * <pre>
- * Example.
- * /.htaccess
- *     RewriteEngine On
- *     RewriteCond %{REQUEST_FILENAME} !-d
- *     RewriteCond %{REQUEST_FILENAME} !-f
- *     RewriteRule .* __gateway.php [L]
- *
- * /__gateway.php
- *     Phanda_PathTranslator::getInstance()->initialize()
- *     ->setParameterDirectoryName('%VAR%')
- *     ->setSearchExtensions('php')
- *     ->execute();
- *
- * If request to "/categories/1/items/2/detail.json"
- * current directory is moved to "/categories/%VAR%/items/%VAR%/" and "detail.php" is included.
- *
- * /categories/%VAR%/items/%VAR%/detail.php
- *     $translator = Phanda_PathTranslator::getInstance();
- *     $categoryId = $translator->getParameter(0); // '1'
- *     $itemId     = $translator->getParameter(1); // '2'
- *     $extension  = $translator->getExtension(); // 'json'
- * </pre>
  */
 class Phanda_PathTranslator
 {
@@ -266,25 +242,32 @@ class Phanda_PathTranslator
 	 */
 	public function prepare($requestUri=null)
 	{
-		if (!isset($this->requestUri)) {
-			if (isset($requestUri)) {
-				$this->setRequestUri($requestUri);
-			} elseif (isset($_SERVER['REQUEST_URI'])) {
-				$this->setRequestUri($_SERVER['REQUEST_URI']);
-			} else {
-				throw new RuntimeException('The requestUri is not set.');
-			}
-		}
+		$exceptionClass = (isset($this->exceptionClass)) ? $this->exceptionClass : 'Phanda_PathTranslator_Exception';
 
 		if (!isset($this->documentRoot)) {
 			if (isset($_SERVER['DOCUMENT_ROOT'])) {
 				$this->setDocumentRoot($_SERVER['DOCUMENT_ROOT']);
 			} else {
-				throw new RuntimeException('The documentRoot is not set.');
+				throw new $exceptionClass('The documentRoot is not set.');
 			}
 		}
 
-		$exceptionClass = (isset($this->exceptionClass)) ? $this->exceptionClass : 'RuntimeException';
+		if (!isset($this->requestUri)) {
+			try {
+				if (isset($requestUri)) {
+					$this->setRequestUri($requestUri);
+				} elseif (isset($_SERVER['REQUEST_URI'])) {
+					$this->setRequestUri($_SERVER['REQUEST_URI']);
+				}
+			} catch (Exception $exception) {
+				$this->statusCode = self::BAD_REQUEST;
+				throw new $exceptionClass($exception->getMessage(), $this->statusCode);
+			}
+			if (!isset($this->requestUri)) {
+				$this->statusCode = self::BAD_REQUEST;
+				throw new $exceptionClass('The requestUri is not set.', $this->statusCode);
+			}
+		}
 
 		if (!preg_match('~\A(/[^?#]*)(\?([^#]*))?(#(.*))?\z~i', $this->requestUri, $matches)) {
 			$this->statusCode = self::BAD_REQUEST;
@@ -390,15 +373,22 @@ class Phanda_PathTranslator
 	}
 
 	/**
+	 * @param string requestURI
 	 * @return object Phanda_PathTranslator
 	 */
-	public function execute()
+	public function execute($requestUri=null)
 	{
 		if (!$this->prepared) {
-			$this->prepare();
+			$this->prepare($requestUri);
 		}
+		$apache_enabled = function_exists('apache_setenv');
 		foreach ($this->metaVariables as $key => $value) {
 			$_SERVER[$key] = $value;
+			$_ENV[$key] = $value;
+			if ($apache_enabled) {
+				apache_setenv($key, $value);
+			}
+			putenv(sprintf('%s=%s', $key, $value));
 		}
 		$translateDirectory = $this->getTranslateDirectory();
 		$includeFile = $this->getIncludeFile();

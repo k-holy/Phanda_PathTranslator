@@ -33,7 +33,7 @@ class Phanda_PathTranslatorTestCase extends PHPUnit_Framework_TestCase
 		$this->assertEquals($translator->getParameter(1), '2');
 	}
 
-	public function testRewritingOfMetaVariable()
+	public function testMetaVariablesAreRewritten()
 	{
 		$translator = Phanda_PathTranslator::getInstance()->prepare('/categories/1/items/2/detail.php');
 		$this->assertEquals($translator->getMetaVariable('SCRIPT_NAME'    ), '/categories/1/items/2/detail.php');
@@ -41,7 +41,7 @@ class Phanda_PathTranslatorTestCase extends PHPUnit_Framework_TestCase
 		$this->assertEquals($translator->getMetaVariable('SCRIPT_FILENAME'), $translator->getDocumentRoot() . '/categories/1/items/2/detail.php');
 	}
 
-	public function testRewritingOfMetaVariableWhenPathInfoIsSpecified()
+	public function testMetaVariablesRewrittenWhenPathInfoIsSpecified()
 	{
 		$translator = Phanda_PathTranslator::getInstance()->setSearchExtensions('php')->prepare('/categories/1/modify/foo/bar?foo=bar#1');
 		$this->assertEquals($translator->getMetaVariable('PHP_SELF'       ), '/categories/1/modify.php/foo/bar');
@@ -49,6 +49,28 @@ class Phanda_PathTranslatorTestCase extends PHPUnit_Framework_TestCase
 		$this->assertEquals($translator->getMetaVariable('SCRIPT_FILENAME'), $translator->getDocumentRoot() . '/categories/1/modify.php');
 		$this->assertEquals($translator->getMetaVariable('PATH_INFO'      ), '/foo/bar');
 		$this->assertEquals($translator->getMetaVariable('PATH_TRANSLATED'), $translator->getDocumentRoot() . '/foo/bar');
+	}
+
+	public function testEnvironmentVariablesAreRewrittenAfterExecuted()
+	{
+		$translator = Phanda_PathTranslator::getInstance()->setSearchExtensions('php')->execute('/categories/1/modify/foo/bar?foo=bar#1');
+		$this->assertEquals($_SERVER['PHP_SELF'       ], '/categories/1/modify.php/foo/bar');
+		$this->assertEquals($_SERVER['SCRIPT_NAME'    ], '/categories/1/modify.php');
+		$this->assertEquals($_SERVER['SCRIPT_FILENAME'], $translator->getDocumentRoot() . '/categories/1/modify.php');
+		$this->assertEquals($_SERVER['PATH_INFO'      ], '/foo/bar');
+		$this->assertEquals($_SERVER['PATH_TRANSLATED'], $translator->getDocumentRoot() . '/foo/bar');
+		$this->assertEquals($_SERVER['PHP_SELF'       ], getenv('PHP_SELF'));
+		$this->assertEquals($_SERVER['SCRIPT_NAME'    ], getenv('SCRIPT_NAME'));
+		$this->assertEquals($_SERVER['SCRIPT_FILENAME'], getenv('SCRIPT_FILENAME'));
+		$this->assertEquals($_SERVER['PATH_INFO'      ], getenv('PATH_INFO'));
+		$this->assertEquals($_SERVER['PATH_TRANSLATED'], getenv('PATH_TRANSLATED'));
+		if (function_exists('apache_getenv')) {
+			$this->assertEquals($_SERVER['PHP_SELF'       ], apache_getenv('PHP_SELF'));
+			$this->assertEquals($_SERVER['SCRIPT_NAME'    ], apache_getenv('SCRIPT_NAME'));
+			$this->assertEquals($_SERVER['SCRIPT_FILENAME'], apache_getenv('SCRIPT_FILENAME'));
+			$this->assertEquals($_SERVER['PATH_INFO'      ], apache_getenv('PATH_INFO'));
+			$this->assertEquals($_SERVER['PATH_TRANSLATED'], apache_getenv('PATH_TRANSLATED'));
+		}
 	}
 
 	public function testRewritingOfDirectoryIndexWhenQueryStringAndFragmentIsSpecified()
@@ -140,7 +162,7 @@ class Phanda_PathTranslatorTestCase extends PHPUnit_Framework_TestCase
 		$translator = Phanda_PathTranslator::getInstance();
 		try {
 			$translator->prepare(array());
-		} catch (RuntimeException $exception) {
+		} catch (Phanda_PathTranslator_Exception $exception) {
 			return;
 		}
 		$this->fail('No exception thrown');
