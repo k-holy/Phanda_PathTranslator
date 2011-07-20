@@ -163,6 +163,7 @@ class Phanda_PathTranslatorTestCase extends PHPUnit_Framework_TestCase
 		try {
 			$translator->prepare(array());
 		} catch (Phanda_PathTranslator_Exception $exception) {
+			$this->assertEquals($translator->getStatusCode(), Phanda_PathTranslator::BAD_REQUEST);
 			return;
 		}
 		$this->fail('No exception thrown');
