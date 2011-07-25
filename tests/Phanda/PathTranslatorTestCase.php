@@ -51,7 +51,7 @@ class Phanda_PathTranslatorTestCase extends PHPUnit_Framework_TestCase
 		$this->assertEquals($translator->getMetaVariable('PATH_TRANSLATED'), $translator->getDocumentRoot() . '/foo/bar');
 	}
 
-	public function testEnvironmentVariablesAreRewrittenAfterExecuted()
+	public function testEnvironmentVariablesAreRewrittenAfterExecutedBySuperGrobals()
 	{
 		$translator = Phanda_PathTranslator::getInstance()->setSearchExtensions('php')->execute('/categories/1/modify/foo/bar?foo=bar#1');
 		$this->assertEquals($_SERVER['PHP_SELF'       ], '/categories/1/modify.php/foo/bar');
@@ -59,18 +59,33 @@ class Phanda_PathTranslatorTestCase extends PHPUnit_Framework_TestCase
 		$this->assertEquals($_SERVER['SCRIPT_FILENAME'], $translator->getDocumentRoot() . '/categories/1/modify.php');
 		$this->assertEquals($_SERVER['PATH_INFO'      ], '/foo/bar');
 		$this->assertEquals($_SERVER['PATH_TRANSLATED'], $translator->getDocumentRoot() . '/foo/bar');
-		$this->assertEquals($_SERVER['PHP_SELF'       ], getenv('PHP_SELF'));
-		$this->assertEquals($_SERVER['SCRIPT_NAME'    ], getenv('SCRIPT_NAME'));
-		$this->assertEquals($_SERVER['SCRIPT_FILENAME'], getenv('SCRIPT_FILENAME'));
-		$this->assertEquals($_SERVER['PATH_INFO'      ], getenv('PATH_INFO'));
-		$this->assertEquals($_SERVER['PATH_TRANSLATED'], getenv('PATH_TRANSLATED'));
-		if (function_exists('apache_getenv')) {
-			$this->assertEquals($_SERVER['PHP_SELF'       ], apache_getenv('PHP_SELF'));
-			$this->assertEquals($_SERVER['SCRIPT_NAME'    ], apache_getenv('SCRIPT_NAME'));
-			$this->assertEquals($_SERVER['SCRIPT_FILENAME'], apache_getenv('SCRIPT_FILENAME'));
-			$this->assertEquals($_SERVER['PATH_INFO'      ], apache_getenv('PATH_INFO'));
-			$this->assertEquals($_SERVER['PATH_TRANSLATED'], apache_getenv('PATH_TRANSLATED'));
+		$this->assertEquals($_SERVER['PHP_SELF'       ], $_ENV['PHP_SELF'       ]);
+		$this->assertEquals($_SERVER['SCRIPT_NAME'    ], $_ENV['SCRIPT_NAME'    ]);
+		$this->assertEquals($_SERVER['SCRIPT_FILENAME'], $_ENV['SCRIPT_FILENAME']);
+		$this->assertEquals($_SERVER['PATH_INFO'      ], $_ENV['PATH_INFO'      ]);
+		$this->assertEquals($_SERVER['PATH_TRANSLATED'], $_ENV['PATH_TRANSLATED']);
+	}
+
+	public function testEnvironmentVariablesAreRewrittenAfterExecutedByGetEnv()
+	{
+		$translator = Phanda_PathTranslator::getInstance()->setSearchExtensions('php')->execute('/categories/1/modify/foo/bar?foo=bar#1');
+		$this->assertEquals(getenv('PHP_SELF'       ), '/categories/1/modify.php/foo/bar');
+		$this->assertEquals(getenv('SCRIPT_NAME'    ), '/categories/1/modify.php');
+		$this->assertEquals(getenv('SCRIPT_FILENAME'), $translator->getDocumentRoot() . '/categories/1/modify.php');
+		$this->assertEquals(getenv('PATH_INFO'      ), '/foo/bar');
+		$this->assertEquals(getenv('PATH_TRANSLATED'), $translator->getDocumentRoot() . '/foo/bar');
+	}
+
+	public function testEnvironmentVariablesAreRewrittenAfterExecutedByApacheGetEnv()
+	{
+		if (!function_exists('apache_getenv')) {
+			$this->markTestIncomplete('This test case was skipped, because Apache functions cannot be used in this server.');
 		}
+		$this->assertEquals(apache_getenv('PHP_SELF'       ), '/categories/1/modify.php/foo/bar');
+		$this->assertEquals(apache_getenv('SCRIPT_NAME'    ), '/categories/1/modify.php');
+		$this->assertEquals(apache_getenv('SCRIPT_FILENAME'), $translator->getDocumentRoot() . '/categories/1/modify.php');
+		$this->assertEquals(apache_getenv('PATH_INFO'      ), '/foo/bar');
+		$this->assertEquals(apache_getenv('PATH_TRANSLATED'), $translator->getDocumentRoot() . '/foo/bar');
 	}
 
 	public function testRewritingOfDirectoryIndexWhenQueryStringAndFragmentIsSpecified()
