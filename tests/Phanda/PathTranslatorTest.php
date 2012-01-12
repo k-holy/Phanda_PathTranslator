@@ -205,7 +205,7 @@ class Phanda_PathTranslatorTest extends PHPUnit_Framework_TestCase
 		$this->fail('No exception thrown');
 	}
 
-	public function testDirectlyUnderOfDocumentRootWasRequested()
+	public function testScriptPlacedDirectlyUnderOfDocumentRootCanBeInclude()
 	{
 		$translator = Phanda_PathTranslator::getInstance()->setSearchExtensions('php');
 		$this->script = $translator->getDocumentRoot() . '/echo-test.php';
