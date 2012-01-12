@@ -54,6 +54,14 @@ class Phanda_PathTranslator
 	}
 
 	/**
+	 * Clear singleton instance
+	 */
+	public static function resetInstance()
+	{
+		self::$instance = null;
+	}
+
+	/**
 	 * This object is initialized.
 	 * @return object Phanda_PathTranslator
 	 */
@@ -64,7 +72,7 @@ class Phanda_PathTranslator
 		$this->requestUri = null;
 		$this->parameterDirectoryName = '%VAR%';
 		$this->searchExtensions = array('php','html');
-		$this->exceptionClass = 'Phanda_PathTranslator_Exception';
+		$this->exceptionClass = 'Phanda_PathTranslatorException';
 		$this->metaVariables = array();
 		$this->pathParameters = array();
 		$this->extension = null;
@@ -242,7 +250,8 @@ class Phanda_PathTranslator
 	 */
 	public function prepare($requestUri=null)
 	{
-		$exceptionClass = (isset($this->exceptionClass)) ? $this->exceptionClass : 'Phanda_PathTranslator_Exception';
+		$exceptionClass = (isset($this->exceptionClass))
+			? $this->exceptionClass : 'Phanda_PathTranslatorException';
 
 		if (!isset($this->documentRoot)) {
 			if (isset($_SERVER['DOCUMENT_ROOT'])) {
@@ -261,17 +270,22 @@ class Phanda_PathTranslator
 				}
 			} catch (Exception $exception) {
 				$this->statusCode = self::BAD_REQUEST;
-				throw new $exceptionClass($exception->getMessage(), $this->statusCode);
+				throw new $exceptionClass(
+					$exception->getMessage(), $this->statusCode);
 			}
 			if (!isset($this->requestUri)) {
 				$this->statusCode = self::BAD_REQUEST;
-				throw new $exceptionClass('The requestUri is not set.', $this->statusCode);
+				throw new $exceptionClass(
+					'The requestUri is not set.', $this->statusCode);
 			}
 		}
 
-		if (!preg_match('~\A(/[^?#]*)(\?([^#]*))?(#(.*))?\z~i', $this->requestUri, $matches)) {
+		if (!preg_match('~\A(/[^?#]*)(\?([^#]*))?(#(.*))?\z~i',
+			$this->requestUri, $matches)
+		) {
 			$this->statusCode = self::BAD_REQUEST;
-			throw new $exceptionClass('The requestUri is not valid.', $this->statusCode);
+			throw new $exceptionClass(
+				'The requestUri is not valid.', $this->statusCode);
 		}
 
 		$requestPath     = (isset($matches[1])) ? $matches[1] : '';
@@ -298,8 +312,11 @@ class Phanda_PathTranslator
 				}
 				$basename = substr($segment, 0, $pos);
 				$extension = substr($segment, $pos + 1);
-				if (!empty($this->searchExtensions) && !in_array($extension, $this->searchExtensions)) {
-					$filename = $this->findFile($this->documentRoot . $translateDirectory, $basename, $this->searchExtensions);
+				if (!empty($this->searchExtensions) &&
+					!in_array($extension, $this->searchExtensions)
+				) {
+					$filename = $this->findFile($this->documentRoot . $translateDirectory,
+						$basename, $this->searchExtensions);
 					if (isset($filename)) {
 						$scriptName .= '/' . $filename;
 						$fileSegmentIndex = $index;
@@ -313,25 +330,31 @@ class Phanda_PathTranslator
 				$translateDirectory .= '/' . $segment;
 				continue;
 			}
-			$filename = $this->findFile($this->documentRoot . $translateDirectory, $segment, $this->searchExtensions);
+			$filename = $this->findFile($this->documentRoot . $translateDirectory,
+				$segment, $this->searchExtensions);
 			if (isset($filename)) {
 				$scriptName .= '/' . $filename;
 				$fileSegmentIndex = $index;
 				break;
 			}
-			if (is_dir($this->documentRoot . $translateDirectory . '/' . $this->parameterDirectoryName)) {
+			if (is_dir($this->documentRoot . $translateDirectory . '/' .
+				$this->parameterDirectoryName)
+			) {
 				$translateDirectory .= '/' . $this->parameterDirectoryName;
 				$scriptName .= '/' . $segment;
 				$this->pathParameters[] = $segment;
 				continue;
 			}
 			$this->statusCode = self::NOT_FOUND;
-			throw new $exceptionClass(sprintf('The file that corresponds to the segment of Uri\'s path "%s" is not found.', $segment), $this->statusCode);
+			throw new $exceptionClass(
+				sprintf('The file that corresponds to the segment of Uri\'s path "%s" is not found.', $segment),
+				$this->statusCode);
 		}
 		$translateDirectory = rtrim($translateDirectory, '/');
 
 		if (!isset($filename)) {
-			$filename = $this->findFile($this->documentRoot . $translateDirectory, 'index', array('php', 'html'));
+			$filename = $this->findFile($this->documentRoot . $translateDirectory,
+				'index', array('php', 'html'));
 			if (isset($filename)) {
 				$fileSegmentIndex = $segmentCount - 1;
 				if (strcmp($segments[$segmentCount - 1], '') !== 0) {
@@ -344,7 +367,9 @@ class Phanda_PathTranslator
 
 		if (!isset($filename)) {
 			$this->statusCode = self::NOT_FOUND;
-			throw new $exceptionClass(sprintf('The file that corresponds to the Uri\'s path "%s" is not found.', $requestPath), $this->statusCode);
+			throw new $exceptionClass(
+				sprintf('The file that corresponds to the Uri\'s path "%s" is not found.', $requestPath),
+				$this->statusCode);
 		}
 
 		$includeFile = $translateDirectory . '/' . $filename;
@@ -390,10 +415,12 @@ class Phanda_PathTranslator
 			}
 			putenv(sprintf('%s=%s', $key, $value));
 		}
-		$translateDirectory = $this->getTranslateDirectory();
 		$includeFile = $this->getIncludeFile();
-		if (isset($translateDirectory) && isset($includeFile)) {
-			chdir($translateDirectory);
+		if (isset($includeFile)) {
+			$translateDirectory = $this->getTranslateDirectory();
+			if (isset($translateDirectory)) {
+				chdir($translateDirectory);
+			}
 			include $includeFile;
 		}
 		return $this;
@@ -436,4 +463,6 @@ class Phanda_PathTranslator
 
 }
 
-class Phanda_PathTranslator_Exception extends RuntimeException {}
+class Phanda_PathTranslatorException extends RuntimeException
+{
+}

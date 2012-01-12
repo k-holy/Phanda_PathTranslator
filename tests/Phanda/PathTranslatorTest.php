@@ -9,11 +9,20 @@
 class Phanda_PathTranslatorTest extends PHPUnit_Framework_TestCase
 {
 
+	private $script = null;
+
 	public function setUp()
 	{
 		Phanda_PathTranslator::getInstance()->initialize()
-		->setDocumentRoot(realpath(dirname(__FILE__) . '/PathTranslatorTest'))
+		->setDocumentRoot(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'PathTranslatorTest')
 		->setParameterDirectoryName('%VAR%');
+	}
+
+	public function tearDown()
+	{
+		if (isset($this->script) && file_exists($this->script)) {
+			unlink($this->script);
+		}
 	}
 
 	public function testSingleton()
@@ -164,7 +173,7 @@ class Phanda_PathTranslatorTest extends PHPUnit_Framework_TestCase
 		$translator = Phanda_PathTranslator::getInstance();
 		try {
 			$translator->prepare('#');
-		} catch (Phanda_PathTranslator_Exception $exception) {
+		} catch (Phanda_PathTranslatorException $exception) {
 			$this->assertEquals($translator->getStatusCode(), $exception->getCode());
 			$this->assertEquals($translator->getStatusCode(), Phanda_PathTranslator::BAD_REQUEST);
 			return;
@@ -177,7 +186,7 @@ class Phanda_PathTranslatorTest extends PHPUnit_Framework_TestCase
 		$translator = Phanda_PathTranslator::getInstance();
 		try {
 			$translator->prepare(array());
-		} catch (Phanda_PathTranslator_Exception $exception) {
+		} catch (Phanda_PathTranslatorException $exception) {
 			$this->assertEquals($translator->getStatusCode(), Phanda_PathTranslator::BAD_REQUEST);
 			return;
 		}
@@ -194,6 +203,17 @@ class Phanda_PathTranslatorTest extends PHPUnit_Framework_TestCase
 			return;
 		}
 		$this->fail('No exception thrown');
+	}
+
+	public function testDirectlyUnderOfDocumentRootWasRequested()
+	{
+		$translator = Phanda_PathTranslator::getInstance()->setSearchExtensions('php');
+		$this->script = $translator->getDocumentRoot() . '/echo-test.php';
+		file_put_contents($this->script, '<?php echo "TEST";');
+		ob_start();
+		$translator->execute('/echo-test');
+		$this->assertEquals('TEST', ob_get_contents());
+		ob_end_clean();
 	}
 
 }
