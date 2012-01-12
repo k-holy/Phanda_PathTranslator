@@ -6,13 +6,13 @@
  * @author     k.holy74@gmail.com
  * @license    http://www.opensource.org/licenses/mit-license.php  The MIT License (MIT)
  */
-class Phanda_PathTranslatorTestCase extends PHPUnit_Framework_TestCase
+class Phanda_PathTranslatorTest extends PHPUnit_Framework_TestCase
 {
 
 	public function setUp()
 	{
 		Phanda_PathTranslator::getInstance()->initialize()
-		->setDocumentRoot(realpath(dirname(__FILE__) . '/PathTranslatorTestCase'))
+		->setDocumentRoot(realpath(dirname(__FILE__) . '/PathTranslatorTest'))
 		->setParameterDirectoryName('%VAR%');
 	}
 
@@ -186,10 +186,10 @@ class Phanda_PathTranslatorTestCase extends PHPUnit_Framework_TestCase
 
 	public function testRaiseUserCustomizedException()
 	{
-		$translator = Phanda_PathTranslator::getInstance()->setExceptionClass('Phanda_PathTranslatorTestCaseException');
+		$translator = Phanda_PathTranslator::getInstance()->setExceptionClass('Phanda_PathTranslatorTestException');
 		try {
 			$translator->prepare('#');
-		} catch (Phanda_PathTranslatorTestCaseException $exception) {
+		} catch (Phanda_PathTranslatorTestException $exception) {
 			$this->assertEquals($translator->getStatusCode(), Phanda_PathTranslator::BAD_REQUEST);
 			return;
 		}
@@ -197,4 +197,4 @@ class Phanda_PathTranslatorTestCase extends PHPUnit_Framework_TestCase
 	}
 
 }
-class Phanda_PathTranslatorTestCaseException extends Exception{}
+class Phanda_PathTranslatorTestException extends Exception{}
