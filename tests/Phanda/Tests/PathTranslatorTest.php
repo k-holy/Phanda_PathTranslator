@@ -6,7 +6,7 @@
  * @author     k.holy74@gmail.com
  * @license    http://www.opensource.org/licenses/mit-license.php  The MIT License (MIT)
  */
-class Phanda_PathTranslatorTest extends PHPUnit_Framework_TestCase
+class Phanda_Tests_PathTranslatorTest extends PHPUnit_Framework_TestCase
 {
 
 	private $script = null;
@@ -195,10 +195,10 @@ class Phanda_PathTranslatorTest extends PHPUnit_Framework_TestCase
 
 	public function testRaiseUserCustomizedException()
 	{
-		$translator = Phanda_PathTranslator::getInstance()->setExceptionClass('Phanda_PathTranslatorTestException');
+		$translator = Phanda_PathTranslator::getInstance()->setExceptionClass('Phanda_Tests_PathTranslatorTestException');
 		try {
 			$translator->prepare('#');
-		} catch (Phanda_PathTranslatorTestException $exception) {
+		} catch (Phanda_Tests_PathTranslatorTestException $exception) {
 			$this->assertEquals($translator->getStatusCode(), Phanda_PathTranslator::BAD_REQUEST);
 			return;
 		}
@@ -217,4 +217,4 @@ class Phanda_PathTranslatorTest extends PHPUnit_Framework_TestCase
 	}
 
 }
-class Phanda_PathTranslatorTestException extends Exception{}
+class Phanda_Tests_PathTranslatorTestException extends Exception{}
