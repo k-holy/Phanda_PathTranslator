@@ -1,18 +1,19 @@
 <?php
 /**
- * Phanda_PathTranslator
- *
  * PHP versions 5
  *
  * @copyright  2011 k-holy <k.holy74@gmail.com>
  * @author     k.holy74@gmail.com
  * @license    http://www.opensource.org/licenses/mit-license.php  The MIT License (MIT)
  */
+
+/**
+ * PathTranslator
+ *
+ * @author     k.holy74@gmail.com
+ */
 class Phanda_PathTranslator
 {
-
-	const BAD_REQUEST = 400;
-	const NOT_FOUND = 404;
 
 	private static $instance;
 
@@ -257,7 +258,8 @@ class Phanda_PathTranslator
 			if (isset($_SERVER['DOCUMENT_ROOT'])) {
 				$this->setDocumentRoot($_SERVER['DOCUMENT_ROOT']);
 			} else {
-				throw new $exceptionClass('The documentRoot is not set.');
+				throw new $exceptionClass(
+					'The documentRoot is not set.');
 			}
 		}
 
@@ -269,12 +271,12 @@ class Phanda_PathTranslator
 					$this->setRequestUri($_SERVER['REQUEST_URI']);
 				}
 			} catch (Exception $exception) {
-				$this->statusCode = self::BAD_REQUEST;
+				$this->statusCode = Phanda_PathTranslatorException::BAD_REQUEST;
 				throw new $exceptionClass(
 					$exception->getMessage(), $this->statusCode);
 			}
 			if (!isset($this->requestUri)) {
-				$this->statusCode = self::BAD_REQUEST;
+				$this->statusCode = Phanda_PathTranslatorException::BAD_REQUEST;
 				throw new $exceptionClass(
 					'The requestUri is not set.', $this->statusCode);
 			}
@@ -283,7 +285,7 @@ class Phanda_PathTranslator
 		if (!preg_match('~\A(/[^?#]*)(\?([^#]*))?(#(.*))?\z~i',
 			$this->requestUri, $matches)
 		) {
-			$this->statusCode = self::BAD_REQUEST;
+			$this->statusCode = Phanda_PathTranslatorException::BAD_REQUEST;
 			throw new $exceptionClass(
 				'The requestUri is not valid.', $this->statusCode);
 		}
@@ -345,9 +347,9 @@ class Phanda_PathTranslator
 				$this->pathParameters[] = $segment;
 				continue;
 			}
-			$this->statusCode = self::NOT_FOUND;
+			$this->statusCode = Phanda_PathTranslatorException::NOT_FOUND;
 			throw new $exceptionClass(
-				sprintf('The file that corresponds to the segment of Uri\'s path "%s" is not found.', $segment),
+				sprintf('The file that corresponds to the segment of Uri\'s path "%s" is not found in requestPath "%s".', $segment, $requestPath),
 				$this->statusCode);
 		}
 		$translateDirectory = rtrim($translateDirectory, '/');
@@ -366,7 +368,7 @@ class Phanda_PathTranslator
 		}
 
 		if (!isset($filename)) {
-			$this->statusCode = self::NOT_FOUND;
+			$this->statusCode = Phanda_PathTranslatorException::NOT_FOUND;
 			throw new $exceptionClass(
 				sprintf('The file that corresponds to the Uri\'s path "%s" is not found.', $requestPath),
 				$this->statusCode);
@@ -465,4 +467,6 @@ class Phanda_PathTranslator
 
 class Phanda_PathTranslatorException extends RuntimeException
 {
+	const BAD_REQUEST = 400;
+	const NOT_FOUND = 404;
 }

@@ -175,7 +175,7 @@ class Phanda_Tests_PathTranslatorTest extends PHPUnit_Framework_TestCase
 			$translator->prepare('#');
 		} catch (Phanda_PathTranslatorException $exception) {
 			$this->assertEquals($translator->getStatusCode(), $exception->getCode());
-			$this->assertEquals($translator->getStatusCode(), Phanda_PathTranslator::BAD_REQUEST);
+			$this->assertEquals($translator->getStatusCode(), Phanda_PathTranslatorException::BAD_REQUEST);
 			return;
 		}
 		$this->fail('No exception thrown');
@@ -187,7 +187,7 @@ class Phanda_Tests_PathTranslatorTest extends PHPUnit_Framework_TestCase
 		try {
 			$translator->prepare(array());
 		} catch (Phanda_PathTranslatorException $exception) {
-			$this->assertEquals($translator->getStatusCode(), Phanda_PathTranslator::BAD_REQUEST);
+			$this->assertEquals($translator->getStatusCode(), Phanda_PathTranslatorException::BAD_REQUEST);
 			return;
 		}
 		$this->fail('No exception thrown');
@@ -199,7 +199,7 @@ class Phanda_Tests_PathTranslatorTest extends PHPUnit_Framework_TestCase
 		try {
 			$translator->prepare('#');
 		} catch (Phanda_Tests_PathTranslatorTestException $exception) {
-			$this->assertEquals($translator->getStatusCode(), Phanda_PathTranslator::BAD_REQUEST);
+			$this->assertEquals($translator->getStatusCode(), Phanda_PathTranslatorException::BAD_REQUEST);
 			return;
 		}
 		$this->fail('No exception thrown');
