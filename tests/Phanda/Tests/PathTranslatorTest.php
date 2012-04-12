@@ -30,8 +30,11 @@ class Phanda_Tests_PathTranslatorTest extends PHPUnit_Framework_TestCase
 		$this->assertSame(Phanda_PathTranslator::getInstance(), Phanda_PathTranslator::getInstance());
 	}
 
-	public function testReguralizationOfDirectorySeparatorWhenDocumentRootIsSetted()
+	public function testReguralizationOfDirectorySeparatorWhenDocumentRootIsSettedOnWindows()
 	{
+		if (strncmp('WIN', PHP_OS, 3) !== 0) {
+			$this->markTestIncomplete('This test was skipped, because this server is not Windows.');
+		}
 		$this->assertEquals(Phanda_PathTranslator::getInstance()->setDocumentRoot('C:\Path\To\DocumentRoot')->getDocumentRoot(), 'C:/Path/To/DocumentRoot');
 	}
 
