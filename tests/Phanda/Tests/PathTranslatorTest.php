@@ -33,7 +33,7 @@ class Phanda_Tests_PathTranslatorTest extends PHPUnit_Framework_TestCase
 	public function testReguralizationOfDirectorySeparatorWhenDocumentRootIsSettedOnWindows()
 	{
 		if (strncmp('WIN', PHP_OS, 3) !== 0) {
-			$this->markTestIncomplete('This test was skipped, because this server is not Windows.');
+			$this->markTestSkipped('This test was skipped, because this server is not Windows.');
 		}
 		$this->assertEquals(Phanda_PathTranslator::getInstance()->setDocumentRoot('C:\Path\To\DocumentRoot')->getDocumentRoot(), 'C:/Path/To/DocumentRoot');
 	}
@@ -86,18 +86,6 @@ class Phanda_Tests_PathTranslatorTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals(getenv('SCRIPT_FILENAME'), $translator->getDocumentRoot() . '/categories/1/modify.php');
 		$this->assertEquals(getenv('PATH_INFO'      ), '/foo/bar');
 		$this->assertEquals(getenv('PATH_TRANSLATED'), $translator->getDocumentRoot() . '/foo/bar');
-	}
-
-	public function testEnvironmentVariablesAreRewrittenAfterExecutedByApacheGetEnv()
-	{
-		if (!function_exists('apache_getenv')) {
-			$this->markTestIncomplete('This test case was skipped, because Apache functions cannot be used in this server.');
-		}
-		$this->assertEquals(apache_getenv('PHP_SELF'       ), '/categories/1/modify.php/foo/bar');
-		$this->assertEquals(apache_getenv('SCRIPT_NAME'    ), '/categories/1/modify.php');
-		$this->assertEquals(apache_getenv('SCRIPT_FILENAME'), $translator->getDocumentRoot() . '/categories/1/modify.php');
-		$this->assertEquals(apache_getenv('PATH_INFO'      ), '/foo/bar');
-		$this->assertEquals(apache_getenv('PATH_TRANSLATED'), $translator->getDocumentRoot() . '/foo/bar');
 	}
 
 	public function testRewritingOfDirectoryIndexWhenQueryStringAndFragmentIsSpecified()
