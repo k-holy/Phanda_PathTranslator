@@ -184,18 +184,6 @@ class Phanda_Tests_PathTranslatorTest extends PHPUnit_Framework_TestCase
 		$this->fail('No exception thrown');
 	}
 
-	public function testRaiseUserCustomizedException()
-	{
-		$translator = Phanda_PathTranslator::getInstance()->setExceptionClass('Phanda_Tests_PathTranslatorTestException');
-		try {
-			$translator->prepare('#');
-		} catch (Phanda_Tests_PathTranslatorTestException $exception) {
-			$this->assertEquals($translator->getStatusCode(), Phanda_PathTranslatorException::BAD_REQUEST);
-			return;
-		}
-		$this->fail('No exception thrown');
-	}
-
 	public function testScriptPlacedDirectlyUnderOfDocumentRootCanBeInclude()
 	{
 		$translator = Phanda_PathTranslator::getInstance()->setSearchExtensions('php');
@@ -208,4 +196,3 @@ class Phanda_Tests_PathTranslatorTest extends PHPUnit_Framework_TestCase
 	}
 
 }
-class Phanda_Tests_PathTranslatorTestException extends Exception{}

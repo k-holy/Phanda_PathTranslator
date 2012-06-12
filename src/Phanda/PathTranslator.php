@@ -24,7 +24,6 @@ class Phanda_PathTranslator
 
 	private $parameterDirectoryName = null;
 	private $searchExtensions = array();
-	private $exceptionClass = null;
 
 	private $metaVariables = array();
 	private $pathParameters = array();
@@ -73,7 +72,6 @@ class Phanda_PathTranslator
 		$this->requestUri = null;
 		$this->parameterDirectoryName = '%VAR%';
 		$this->searchExtensions = array('php','html');
-		$this->exceptionClass = 'Phanda_PathTranslatorException';
 		$this->metaVariables = array();
 		$this->pathParameters = array();
 		$this->extension = null;
@@ -160,19 +158,6 @@ class Phanda_PathTranslator
 	}
 
 	/**
-	 * @param string
-	 * @return object Phanda_PathTranslator
-	 */
-	public function setExceptionClass($exceptionClass)
-	{
-		if (!class_exists($exceptionClass, true)) {
-			throw new RuntimeException('The exceptionClass is not valid.');
-		}
-		$this->exceptionClass = $exceptionClass;
-		return $this;
-	}
-
-	/**
 	 * @param  int
 	 * @param  mixed
 	 * @return mixed
@@ -251,14 +236,11 @@ class Phanda_PathTranslator
 	 */
 	public function prepare($requestUri=null)
 	{
-		$exceptionClass = (isset($this->exceptionClass))
-			? $this->exceptionClass : 'Phanda_PathTranslatorException';
-
 		if (!isset($this->documentRoot)) {
 			if (isset($_SERVER['DOCUMENT_ROOT'])) {
 				$this->setDocumentRoot($_SERVER['DOCUMENT_ROOT']);
 			} else {
-				throw new $exceptionClass(
+				throw new Phanda_PathTranslatorException(
 					'The documentRoot is not set.');
 			}
 		}
@@ -272,12 +254,12 @@ class Phanda_PathTranslator
 				}
 			} catch (Exception $exception) {
 				$this->statusCode = Phanda_PathTranslatorException::BAD_REQUEST;
-				throw new $exceptionClass(
+				throw new Phanda_PathTranslatorException(
 					$exception->getMessage(), $this->statusCode);
 			}
 			if (!isset($this->requestUri)) {
 				$this->statusCode = Phanda_PathTranslatorException::BAD_REQUEST;
-				throw new $exceptionClass(
+				throw new Phanda_PathTranslatorException(
 					'The requestUri is not set.', $this->statusCode);
 			}
 		}
@@ -286,7 +268,7 @@ class Phanda_PathTranslator
 			$this->requestUri, $matches)
 		) {
 			$this->statusCode = Phanda_PathTranslatorException::BAD_REQUEST;
-			throw new $exceptionClass(
+			throw new Phanda_PathTranslatorException(
 				'The requestUri is not valid.', $this->statusCode);
 		}
 
@@ -348,7 +330,7 @@ class Phanda_PathTranslator
 				continue;
 			}
 			$this->statusCode = Phanda_PathTranslatorException::NOT_FOUND;
-			throw new $exceptionClass(
+			throw new Phanda_PathTranslatorException(
 				sprintf('The file that corresponds to the segment of Uri\'s path "%s" is not found in requestPath "%s".', $segment, $requestPath),
 				$this->statusCode);
 		}
@@ -369,7 +351,7 @@ class Phanda_PathTranslator
 
 		if (!isset($filename)) {
 			$this->statusCode = Phanda_PathTranslatorException::NOT_FOUND;
-			throw new $exceptionClass(
+			throw new Phanda_PathTranslatorException(
 				sprintf('The file that corresponds to the Uri\'s path "%s" is not found.', $requestPath),
 				$this->statusCode);
 		}
