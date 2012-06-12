@@ -38,6 +38,15 @@ class Phanda_Tests_PathTranslatorTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals(Phanda_PathTranslator::getInstance()->setDocumentRoot('C:\Path\To\DocumentRoot')->getDocumentRoot(), 'C:/Path/To/DocumentRoot');
 	}
 
+	public function testImportEnv()
+	{
+		$_SERVER['DOCUMENT_ROOT'] = '/path/to/document/root';
+		$_SERVER['REQUEST_URI'  ] = '/path/to/request/uri';
+		$translator = Phanda_PathTranslator::getInstance()->importEnv();
+		$this->assertEquals($_SERVER['DOCUMENT_ROOT'], $translator->getDocumentRoot());
+		$this->assertEquals($_SERVER['REQUEST_URI'  ], $translator->getRequestUri());
+	}
+
 	public function testGetParameter()
 	{
 		$translator = Phanda_PathTranslator::getInstance()->prepare('/categories/1/items/2/');
@@ -159,29 +168,22 @@ class Phanda_Tests_PathTranslatorTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals($translator->getVirtualUri()                   , '/index.php');
 	}
 
+	/**
+	 * @expectedException InvalidArgumentException
+	 */
 	public function testRaiseExceptionWhenUriIsNotValid()
 	{
 		$translator = Phanda_PathTranslator::getInstance();
-		try {
-			$translator->prepare('#');
-		} catch (Phanda_PathTranslatorException $exception) {
-			$this->assertEquals($translator->getStatusCode(), $exception->getCode());
-			$this->assertEquals($translator->getStatusCode(), Phanda_PathTranslatorException::BAD_REQUEST);
-			return;
-		}
-		$this->fail('No exception thrown');
+		$translator->prepare('#');
 	}
 
+	/**
+	 * @expectedException InvalidArgumentException
+	 */
 	public function testRaiseExceptionWhenUriIsNotString()
 	{
 		$translator = Phanda_PathTranslator::getInstance();
-		try {
-			$translator->prepare(array());
-		} catch (Phanda_PathTranslatorException $exception) {
-			$this->assertEquals($translator->getStatusCode(), Phanda_PathTranslatorException::BAD_REQUEST);
-			return;
-		}
-		$this->fail('No exception thrown');
+		$translator->prepare(array());
 	}
 
 	public function testScriptPlacedDirectlyUnderOfDocumentRootCanBeInclude()
