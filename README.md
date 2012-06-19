@@ -30,3 +30,6 @@ And then environment variables (PHP_SELF, SCRIPT_NAME, SCRIPT_FILENAME, PATH_INF
 	$categoryId = $translator->getParameter(0); // '1'
 	$itemId     = $translator->getParameter(1); // '2'
 	$extension  = $translator->getExtension();  // 'json'
+
+This project stopped updating.
+https://github.com/k-holy/Volcanus_Routing inherits this project.
